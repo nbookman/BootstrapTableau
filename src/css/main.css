@@ -1222,7 +1222,7 @@ body {
 }
 
 .shadow-center {
-  box-shadow: 0 0rem 1rem 0rem rgba(0, 0, 0, .15) !important
+  box-shadow: 0 0rem 1rem 1rem rgba(0, 0, 0, .15) !important
 }
 
 .shadow-top {
