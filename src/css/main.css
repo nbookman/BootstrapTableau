@@ -2,12 +2,11 @@ body {
   background: transparent !important;
 }
 
-.hide {
-  display: none;
+.visible {
+  visibility: visible !important;
 }
-
-.show {
-  display: block;
+.invisible {
+  visibility: hidden !important;
 }
 
 .rounded-4 {
@@ -1220,6 +1219,10 @@ body {
 
 .bg-gradient-top-vsm {
   background-image: linear-gradient(0deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0)) !important
+}
+
+.shadow-center {
+  box-shadow: 0 0rem 1rem 0rem rgba(0, 0, 0, .15) !important
 }
 
 .shadow-top {
