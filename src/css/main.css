@@ -1225,6 +1225,10 @@ body {
   box-shadow: 0 0rem 1rem 1rem rgba(0, 0, 0, .15) !important
 }
 
+.shadow-center2 {
+  box-shadow: 0 1rem 1rem 0rem rgba(0, 0, 0, .15) !important
+}
+
 .shadow-top {
   box-shadow: 0 -1rem 1rem -1rem rgba(0, 0, 0, .15) !important
 }
