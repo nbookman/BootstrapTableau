@@ -151,6 +151,10 @@ body {
   background-color: rgb(255 255 255);
 }
 
+.bg-brand-blue {
+  background-color: #003a9b;
+}
+
 .bg-slate-50 {
   background-color: rgb(248 250 252);
 }
