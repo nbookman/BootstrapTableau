@@ -62,12 +62,7 @@ body {
 .rounded-top-end-8 { border-top-right-radius: 0.8rem !important; }
 .rounded-bottom-start-8 { border-bottom-left-radius: 0.8rem !important; }
 .rounded-bottom-end-8 { border-bottom-right-radius: 0.8rem !important; }
-
-.rounded-top-10 { 
-  border-top-left-radius: 1rem !important; 
-  border-top-right-radius: 1rem !important;
-}
-
+.rounded-top-10 { border-top-left-radius: 1rem !important; border-top-right-radius: 1rem !important; }
 .rounded-bottom-10 { border-bottom-left-radius: 1rem !important; border-bottom-right-radius: 1rem !important; }
 .rounded-start-10 { border-top-left-radius: 1rem !important; border-bottom-left-radius: 1rem !important; }
 .rounded-end-10 { border-top-right-radius: 1rem !important; border-bottom-right-radius: 1rem !important; }
@@ -79,9 +74,7 @@ body {
 .rounded-bottom-20 { border-bottom-left-radius: 2rem !important; border-bottom-right-radius: 2rem !important; }
 .rounded-start-20 { border-top-left-radius: 2rem !important; border-bottom-left-radius: 2rem !important; }
 .rounded-end-20 { border-top-right-radius: 2rem !important; border-bottom-right-radius: 2rem !important; }
-
-.rounded-topstart20 { border-top-left-radius: 2rem !important; }
-
+.rounded-top-start-20 { border-top-left-radius: 2rem !important; }
 .rounded-top-end-20 { border-top-right-radius: 2rem !important; }
 .rounded-bottom-start-20 { border-bottom-left-radius: 2rem !important; }
 .rounded-bottom-end-20 { border-bottom-right-radius: 2rem !important; }
