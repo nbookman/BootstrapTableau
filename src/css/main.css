@@ -38,6 +38,11 @@ body {
   border-radius: 10rem !important;
 }
 
+.rounded-top {
+  border-top-left-radius: 1rem !important;
+  border-top-right-radius: 1rem !important;
+}
+
 .border-dashed {
   border-style: dashed !important;
 }
