@@ -2,6 +2,14 @@ body {
   background: transparent !important;
 }
 
+.hide {
+  display: none;
+}
+
+.show {
+  display: block;
+}
+
 .rounded-4 {
   border-radius: 0.4rem !important;
 }
