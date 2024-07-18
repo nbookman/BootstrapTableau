@@ -1,3 +1,8 @@
+'use strict';
+
+body {
+  background-color: transparent !important;
+}
 
 .rounded-4 {
   border-radius: 0.4rem !important;
