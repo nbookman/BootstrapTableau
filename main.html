@@ -12,14 +12,22 @@
     <script src="./src/js/tableau.extensions.1.latest.min.js"></script>
     <script src="./src/js/index.js"></script>
     <link rel="stylesheet" href="./src/css/main.css">
-  <style>
-    html, body {
-      background: rgba(255, 255, 255, 0) !important;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-  </style>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            background-color: transparent !important;
+        }
+    </style>
+    <script>
+        window.addEventListener('load', function() {
+            document.documentElement.style.backgroundColor = 'transparent';
+            document.body.style.backgroundColor = 'transparent';
+        });
+    </script>
 </head>
 
 <body>
