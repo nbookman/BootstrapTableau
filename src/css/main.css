@@ -2,12 +2,6 @@ body {
   background: transparent !important;
 }
 
-.visible {
-  visibility: visible !important;
-}
-.invisible {
-  visibility: hidden !important;
-}
 
 .rounded-4 {
   border-radius: 0.4rem !important;
