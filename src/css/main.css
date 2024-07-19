@@ -1223,19 +1223,23 @@ body {
 }
 
 .shadow-top-start {
-  box-shadow: -1rem -.5rem 1rem -1rem rgba(0, 0, 0, .15) !important
+  box-shadow: 0 -.5rem 1rem -1rem rgba(0, 0, 0, .15) !important;
+  box-shadow: -1rem 0 1rem -1rem rgba(0, 0, 0, .15) !important;
 }
 
 .shadow-bottom-start {
-  box-shadow: -1rem 1.5rem 1rem -1rem rgba(0, 0, 0, .15) !important
+  box-shadow: 0 1.5rem 1rem -1rem rgba(0, 0, 0, .15) !important;
+  box-shadow: -1rem 0 1rem -1rem rgba(0, 0, 0, .15) !important;
 }
 
 .shadow-top-end {
-  box-shadow: 1rem -.5rem 1rem -1rem rgba(0, 0, 0, .15) !important
+  box-shadow: 0 -.5rem 1rem -1rem rgba(0, 0, 0, .15) !important;
+  box-shadow: 1rem 0 1rem -1rem rgba(0, 0, 0, .15) !important;
 }
 
 .shadow-bottom-end {
-  box-shadow: 1rem 1.5rem 1rem -1rem rgba(0, 0, 0, .15) !important
+   box-shadow: 0 1.5rem 1rem -1rem rgba(0, 0, 0, .15) !important;
+  box-shadow: 1rem 0 1rem -1rem rgba(0, 0, 0, .15) !important;
 }
 
 .shadow-top {
@@ -1252,4 +1256,21 @@ body {
 
 .shadow-bottom {
   box-shadow: 0 1.5rem 1rem -1rem rgba(0, 0, 0, .15) !important
+}
+
+
+.shadow-top-lg {
+  box-shadow: 0 -2rem 3rem -3rem rgba(0, 0, 0, .15) !important
+}
+
+.shadow-end-lg {
+  box-shadow: 3rem 0 3rem -3rem rgba(0, 0, 0, .15) !important
+}
+
+.shadow-start-lg {
+  box-shadow: -3rem 0 3rem -3rem rgba(0, 0, 0, .15) !important
+}
+
+.shadow-bottom-lg {
+  box-shadow: 0 4rem 3rem -3rem rgba(0, 0, 0, .15) !important
 }
