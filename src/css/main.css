@@ -1,7 +1,9 @@
-'use strict';
-
 body {
   background: transparent !important;
+}
+
+.gradient-bg {
+  background: linear-gradient(120deg, #EEF1FE, #FCEEF4); /* Change colors as needed */
 }
 
 .rounded-4 {
