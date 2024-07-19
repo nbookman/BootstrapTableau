@@ -1,7 +1,7 @@
 'use strict';
 
 body {
-  background-color: transparent !important;
+  background: transparent !important;
 }
 
 .rounded-4 {
