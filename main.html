@@ -33,6 +33,282 @@
 </head>
 
 <body>
+     <iframe id="extension-content-frame" style="position:fixed; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:999999;" sandbox="allow-scripts"></iframe>
 </body>
+    <script>
+        'use strict';
 
+        console.log('Extension sandbox script loading...');
+
+        const isUserAgentStringBlocked = (userAgent)=>{
+            let safelist = [{
+                browser: "Chrome",
+                minVer: 61
+            }, {
+                browser: "HeadlessChrome",
+                minVer: 61
+            }, {
+                browser: "QtWebEngine",
+                minVer: 5,
+                minVer2: 10
+            }, {
+                browser: "Edge",
+                minVer: 16
+            }, {
+                browser: "Firefox",
+                minVer: 52
+            }, // Using AppleWebKit as that's the browser engine for MacOS Safari, iOS Safari & Tableau iOS App
+            {
+                browser: "AppleWebKit",
+                minVer: 605
+            }, // Only there to future proof normal Safari browsers
+            {
+                browser: "Safari",
+                minVer: 605
+            }, ];
+
+            let blocklist = [];
+
+            let isBlockedBrowser = true;
+
+            // Sample user agent string
+            //  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36"
+            for (let s of safelist) {
+                let r = new RegExp(` ${s.browser}\\/(\\d+)\\.(\\d+)?\\.?[0-9\\.]+`);
+                let match = userAgent.match(r);
+                if (match && match[1] && parseInt(match[1]) >= s.minVer && (!s.minVer2 || (match[2] && parseInt(match[2]) >= s.minVer2))) {
+                    isBlockedBrowser = false;
+                    break;
+                }
+            }
+
+            for (let r of blocklist) {
+                if (userAgent.match(r)) {
+                    isBlockedBrowser = true;
+                    break;
+                }
+            }
+
+            return isBlockedBrowser;
+        }
+
+        const isBlockedBrowser = isUserAgentStringBlocked(navigator.userAgent);
+
+        const ACCEPT_LANG_CODE = 'en';
+        const ERROR_ELEMENT_CLASS = 'error-class';
+        const ERROR_ELEMENT_ID = 'error';
+        const TRANSLATIONS_LIST = {
+            "de": {
+                "unsupportedBrowserError": "Ihr Browser unterstützt keine Tableau-Erweiterungen. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=de-de&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                "unsupportedVersionError": "Diese Version von Tableau unterstützt keine Sandbox-Erweiterungen. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=de-de&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+            },
+            "en": {
+                "unsupportedBrowserError": "Your browser does not support Tableau extensions. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=en-us&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                "unsupportedVersionError": "This version of Tableau does not support sandboxed extensions. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=en-us&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+            },
+            "en-GB": {
+                "unsupportedBrowserError": "Your browser does not support Tableau extensions. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=en-gb&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                "unsupportedVersionError": "This version of Tableau does not support sandboxed extensions. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=en-gb&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+            },
+            "es": {
+                "unsupportedBrowserError": "Su navegador no admite las extensiones de Tableau. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=es-es&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                "unsupportedVersionError": "Esta versión de Tableau no admite extensiones con Sandbox. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=es-es&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+            },
+            "fr": {
+                "unsupportedBrowserError": "Votre navigateur ne prend pas en charge les extensions Tableau. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=fr-fr&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                "unsupportedVersionError": "Cette version de Tableau ne prend pas en charge les extensions en mode Sandbox. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=fr-fr&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+            },
+            "it": {
+                "unsupportedBrowserError": "Il tuo browser non supporta le estensioni di Tableau. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=it-it&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                "unsupportedVersionError": "Questa versione di Tableau non supporta le estensioni in modalità sandbox. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=it-it&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+            },
+            "ja": {
+                "unsupportedBrowserError": "お使いのブラウザでは Tableau の拡張機能はサポートされていません。<a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=ja-jp&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                "unsupportedVersionError": "このバージョンの Tableau では、セキュリティで保護された拡張はサポートされていません。 <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=ja-jp&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+            },
+            "ko": {
+                "unsupportedBrowserError": "브라우저가 Tableau 확장 프로그램을 지원하지 않습니다. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=ko-kr&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                "unsupportedVersionError": "이 버전의 Tableau는 샌드박스가 적용된 확장 프로그램을 지원하지 않습니다. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=ko-kr&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+            },
+            "pt": {
+                "unsupportedBrowserError": "Seu navegador não é compatível com as extensões do Tableau. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=pt-br&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                "unsupportedVersionError": "Esta versão do Tableau não é compatível com extensões do Sandbox. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=pt-br&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+            },
+            "zh": {
+                "unsupportedBrowserError": "您的浏览器不支持 Tableau 扩展程序。<a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=zh-cn&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                "unsupportedVersionError": "Tableau 的此版本不支持沙盒化扩展程序。 <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=zh-cn&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+            },
+            "zh-Hant": {
+                "unsupportedBrowserError": "您的瀏覽器不支援 Tableau 擴充功能。<a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=zh-tw&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                "unsupportedVersionError": "此版本的 Tableau 不支援沙盒擴充功能。 <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=zh-tw&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+            },
+            "default": {
+                "de": {
+                    "unsupportedBrowserError": "Ihr Browser unterstützt keine Tableau-Erweiterungen. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=de-de&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                    "unsupportedVersionError": "Diese Version von Tableau unterstützt keine Sandbox-Erweiterungen. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=de-de&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+                },
+                "en": {
+                    "unsupportedBrowserError": "Your browser does not support Tableau extensions. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=en-us&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                    "unsupportedVersionError": "This version of Tableau does not support sandboxed extensions. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=en-us&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+                },
+                "en-GB": {
+                    "unsupportedBrowserError": "Your browser does not support Tableau extensions. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=en-gb&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                    "unsupportedVersionError": "This version of Tableau does not support sandboxed extensions. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=en-gb&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+                },
+                "es": {
+                    "unsupportedBrowserError": "Su navegador no admite las extensiones de Tableau. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=es-es&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                    "unsupportedVersionError": "Esta versión de Tableau no admite extensiones con Sandbox. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=es-es&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+                },
+                "fr": {
+                    "unsupportedBrowserError": "Votre navigateur ne prend pas en charge les extensions Tableau. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=fr-fr&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                    "unsupportedVersionError": "Cette version de Tableau ne prend pas en charge les extensions en mode Sandbox. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=fr-fr&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+                },
+                "it": {
+                    "unsupportedBrowserError": "Il tuo browser non supporta le estensioni di Tableau. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=it-it&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                    "unsupportedVersionError": "Questa versione di Tableau non supporta le estensioni in modalità sandbox. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=it-it&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+                },
+                "ja": {
+                    "unsupportedBrowserError": "お使いのブラウザでは Tableau の拡張機能はサポートされていません。<a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=ja-jp&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                    "unsupportedVersionError": "このバージョンの Tableau では、セキュリティで保護された拡張はサポートされていません。 <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=ja-jp&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+                },
+                "ko": {
+                    "unsupportedBrowserError": "브라우저가 Tableau 확장 프로그램을 지원하지 않습니다. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=ko-kr&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                    "unsupportedVersionError": "이 버전의 Tableau는 샌드박스가 적용된 확장 프로그램을 지원하지 않습니다. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=ko-kr&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+                },
+                "pt": {
+                    "unsupportedBrowserError": "Seu navegador não é compatível com as extensões do Tableau. <a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=pt-br&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                    "unsupportedVersionError": "Esta versão do Tableau não é compatível com extensões do Sandbox. <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=pt-br&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+                },
+                "zh": {
+                    "unsupportedBrowserError": "您的浏览器不支持 Tableau 扩展程序。<a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=zh-cn&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                    "unsupportedVersionError": "Tableau 的此版本不支持沙盒化扩展程序。 <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=zh-cn&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+                },
+                "zh-Hant": {
+                    "unsupportedBrowserError": "您的瀏覽器不支援 Tableau 擴充功能。<a href=\"https://www.tableau.com/app/extension-browser-error?build=current&edition=pro&lang=zh-tw&platform=desktop&version=current\" target=\"_blank\">Learn More</a>",
+                    "unsupportedVersionError": "此版本的 Tableau 不支援沙盒擴充功能。 <a href=\"https://www.tableau.com/app/extension-version-error?build=current&edition=pro&lang=zh-tw&platform=desktop&version=current\" target=\"_blank\">Learn More</a>"
+                }
+            }
+        };
+        const UNSUPPORTED_VERSION_TIMEOUT = 2000;
+
+        let contentLoaded = false;
+        let translatedContent = getTranslatedContent();
+
+        // We get the iframe here by tag name because we can't share the id of the frame easily across browser
+        //  and nodejs. Which means if the id changes, this could easily break. At the time of this writing
+        //  the likelihood that there are multiple iframes on this page is extremely low.
+        let extensionFrame = document.getElementsByTagName('iframe')[0];
+        let extensionWindow = extensionFrame.contentWindow;
+
+        window.onload = function() {
+
+            // initiate handshake with api-platform
+            requestHandshake();
+
+            // Wait for a specified timeout before throwing an unsuported version error. 2019.3+ versions send an ACK for the HANDSHAKE.
+            // Older versions don't send an ACK and we'll throw an unsupported version error.
+            setTimeout(setUnsupportedVersionError, UNSUPPORTED_VERSION_TIMEOUT);
+
+        }
+        ;
+
+        // add listener for version ACK and message forwarding
+        window.addEventListener('message', receiveMessage, false);
+
+        // ============================= Utils ===========================================================================
+
+        function getTranslatedContent() {
+            let targetLocale = ACCEPT_LANG_CODE ? ACCEPT_LANG_CODE : getNavigatorLanguage();
+            if (TRANSLATIONS_LIST[targetLocale]) {
+                // full match
+                return TRANSLATIONS_LIST[targetLocale];
+            }
+
+            // at this point, we're just trying to match the language code in tableau's locale list
+            let idx = targetLocale.indexOf('-');
+            let targetLang = idx >= 0 ? targetLocale.substring(0, idx) : targetLocale;
+            var partialMatchLocales = Object.keys(TRANSLATIONS_LIST).filter(function(locale) {
+                // partial match
+                return locale.indexOf(targetLang) === 0;
+            });
+
+            return partialMatchLocales.length > 0 ? TRANSLATIONS_LIST[partialMatchLocales[0]] : TRANSLATIONS_LIST['en'];
+        }
+
+        function getNavigatorLanguage() {
+            if (navigator.languages && navigator.languages.length) {
+                return navigator.languages[0];
+            } else {
+                return navigator.userLanguage || navigator.language || navigator.browserLanguage || 'en';
+            }
+        }
+
+        // ====================================== Handler methods ==========================================================
+
+        function receiveMessage(event) {
+            let msgType = event.data.msgType;
+            if (msgType != 'v-ack') {
+                forwardMessage(event);
+            } else {
+                // receive ACK
+                if (isBlockedBrowser) {
+                    console.log(`Browser user agent rejected:\n${navigator.userAgent}`);
+                    displayErrorContent(translatedContent.unsupportedBrowserError);
+                } else {
+                    loadExtensionContent();
+                }
+            }
+        }
+
+        function forwardMessage(event) {
+            /**
+   * window.opener works for the specific case of ServerUINamespaceHandler.
+   * DesktopUINamespaceHandler has a parent iframe (The window.opener is on that parent frame).
+   */
+            let destination = window.opener ? window.opener : window.parent;
+            if (event.source == destination) {
+                extensionWindow.postMessage(event.data, '*');
+            } else {
+                destination.postMessage(event.data, '*');
+            }
+        }
+
+        function loadExtensionContent() {
+            extensionFrame.src = 'https://extensions.tableauusercontent.com/private-content/tabcss/src/css/main.css';
+            extensionFrame.style.display = 'block';
+            contentLoaded = true;
+            console.log('Extension sandbox window.load done.');
+        }
+
+        function requestHandshake() {
+            let guid = '92b8d8eb-2040-4808-9198-69ba6a898d5e';
+            if (!guid) {
+                console.error('Sandbox frame did not pass valid GUID.');
+                return;
+            }
+            let data = {
+                msgGuid: guid,
+                msgType: 'v-handshake'
+            }
+            // Posting to the iframe that runs api-js-platform
+            window.parent.postMessage(data, '*');
+        }
+
+        function setUnsupportedVersionError() {
+            if (!contentLoaded) {
+                let errMsg = translatedContent.unsupportedVersionError;
+                console.error(errMsg);
+                displayErrorContent(errMsg);
+            }
+        }
+
+        function displayErrorContent(errorMsg) {
+            extensionFrame.parentElement.removeChild(extensionFrame);
+            var errorDiv = document.createElement('div');
+            errorDiv.innerHTML = errorMsg;
+            errorDiv.className = ERROR_ELEMENT_CLASS;
+            errorDiv.id = ERROR_ELEMENT_ID;
+            document.body.appendChild(errorDiv);
+        }
+    </script>
 </html>
