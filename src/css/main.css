@@ -1278,3 +1278,11 @@ body {
 }
 
 .border-bblue { border-color: rgb(58 155 100);}
+
+/* Example Preset Combination (rounded-20, shadow, bg-white, z-1)*/
+.preset-r20-sh-bgw-z1 {
+  border-radius: 2rem !important;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .15) !important;
+  background-color: rgb(255 255 255);
+  z-index: 100 !important;
+}
