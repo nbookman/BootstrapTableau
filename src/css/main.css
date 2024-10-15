@@ -1278,7 +1278,7 @@ body {
 }
 
 #border-bblue { 
-  border-color: #003a9b !important;
+  border-color: rgba(58, 155, 100, 1) !important;
 }
 
 /* Example Preset Combination (rounded-20, shadow, bg-white, z-1)*/
