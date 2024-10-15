@@ -1277,7 +1277,7 @@ body {
   box-shadow: 0 4rem 3rem -1rem rgba(0, 0, 0, .15) !important
 }
 
-#border-bblue { 
+.border-bblue { 
   border-color: rgb(58, 155, 100) !important;
 }
 
