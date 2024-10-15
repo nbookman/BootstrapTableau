@@ -1277,7 +1277,9 @@ body {
   box-shadow: 0 4rem 3rem -1rem rgba(0, 0, 0, .15) !important
 }
 
-.border-bblue { border-color: rgb(58 155 100);}
+.border-bblue { 
+  border-color: rgb(58 155 100) !important;
+}
 
 /* Example Preset Combination (rounded-20, shadow, bg-white, z-1)*/
 .preset-r20-sh-bgw-z1 {
