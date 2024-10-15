@@ -241,10 +241,16 @@ body {  background: transparent !important;}
   border: 3px dashed #003a9b !important;
 }
 
-.border-brandblue {
-  border: #003a9b !important;
-}
-
 .border-brand-blue {
   border-color: #003a9b !important;
 }
+
+
+.border-aurora-gray-7 { border-color: #767676 !important;}
+.border-aurora-green-7 { border-color: #358271 !important;}
+.border-aurora-aqua-7 { border-color: #237ea3 !important;}
+.border-aurora-blue-7 { border-color: #3f73d3 !important;}
+.border-aurora-purple-7 { border-color: #7461e7 !important;}
+.border-aurora-magenta-7 { border-color: #c74289 !important;}
+.border-aurora-orange-7 { border-color: #b4602b !important;}
+.border-aurora-earth-7 { border-color: #996e2c !important;}
