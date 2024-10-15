@@ -107,6 +107,7 @@ body {  background: transparent !important;}
 
 
 /* Border Colors */
+.border-bblue { border-color: rgb(58 155 100);}
 .border-black { border-color: rgb(0 0 0);}
 .border-white { border-color: rgb(255 255 255);}
 .border-aurora-ink-blue { border-color: #001c40;}
@@ -327,6 +328,3 @@ body {  background: transparent !important;}
 
 /* Example Custom Gradient (light blue to light magenta, diagonal)*/
 .gradient-bg {  background: linear-gradient(120deg, #EEF1FE, #FCEEF4);}
-
-/* Test of Opacity*/
-.opacity-50
