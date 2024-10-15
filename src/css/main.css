@@ -1,7 +1,6 @@
 body {  background: transparent !important;}
 
 
-
 /* Background Colors */
 .bg-black { background-color: rgb(0 0 0);}
 .bg-white { background-color: rgb(255 255 255);}
@@ -237,7 +236,3 @@ body {  background: transparent !important;}
 
 /* Example Custom Gradient (light blue to light magenta, diagonal)*/
 .gradient-bg {  background: linear-gradient(120deg, #EEF1FE, #FCEEF4);}
-
-.border-bblue { 
-  border: 1px solid #003a9b !important;
-}
