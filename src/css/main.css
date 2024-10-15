@@ -113,7 +113,7 @@ body {  background: transparent !important;}
 .border-end
 
 
-/* Border Sizes (.border default is 1)*/
+/* Border Sizes (.border default is 1) */
 .border-2
 .border-3
 .border-4
@@ -192,7 +192,7 @@ body {  background: transparent !important;}
 .rounded-bottom-end-50 { border-bottom-right-radius: 5rem !important; }
 
 
-/* Shadows (.shadow is default)*/
+/* Shadows (.shadow is default) */
 .shadow-center { box-shadow: 0 0.5rem 1rem 0rem rgba(0, 0, 0, .15) !important}
 .shadow-top-start { box-shadow: 0 -.5rem 1rem -1rem rgba(0, 0, 0, .15) !important; box-shadow: -1rem 0 1rem -1rem rgba(0, 0, 0, .15) !important;}
 .shadow-bottom-start { box-shadow: 0 1.5rem 1rem -1rem rgba(0, 0, 0, .15) !important; box-shadow: -1rem 0 1rem -1rem rgba(0, 0, 0, .15) !important;}
@@ -226,7 +226,7 @@ body {  background: transparent !important;}
 .z-15 { z-index: 1500 !important;}
 
 
-/* Example Preset Combination (rounded-20, shadow, bg-white, z-1)*/
+/* Example Preset Combination (rounded-20, shadow, bg-white, z-1) */
 .preset-r20-sh-bgw-z1 {
   border-radius: 2rem !important;
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .15) !important;
@@ -234,18 +234,42 @@ body {  background: transparent !important;}
   z-index: 100 !important;
 }
 
-/* Example Custom Gradient (light blue to light magenta, diagonal)*/
+/* Example Custom Gradient (light blue to light magenta, diagonal) */
 .gradient-bg {  background: linear-gradient(120deg, #EEF1FE, #FCEEF4);}
-
-.border-bblue {
-  border: 3px dashed #003a9b !important;
-}
-
-.border-brand-blue {
-  border-color: #003a9b !important;
-}
+.gradient-bg-dark {  background: linear-gradient(120deg, #003a9b, #c74289);}
 
 
+/* Border Colors */
+.border-aurora-ink-blue { border-color: #001c40 !important;}
+.border-aurora-brand-blue { border-color: #003a9b !important;}
+.border-aurora-a11y-blue { border-color: #6792f0 !important;}
+.border-aurora-red-alert { border-color: #a9252b !important;}
+.border-aurora-button-dark { border-color: #2557a7 !important;}
+.border-aurora-button-light { border-color: #3f73d3 !important;}
+.border-aurora-gray-10 { border-color: #2d2d2d !important;}
+.border-aurora-green-10 { border-color: #19332d !important;}
+.border-aurora-aqua-10 { border-color: #123141 !important;}
+.border-aurora-blue-10 { border-color: #0d2d5e !important;}
+.border-aurora-purple-10 { border-color: #2c2071 !important;}
+.border-aurora-magenta-10 { border-color: #4f1c36 !important;}
+.border-aurora-orange-10 { border-color: #462615 !important;}
+.border-aurora-earth-10 { border-color: #3d2b12 !important;}
+.border-aurora-gray-9 { border-color: #424242 !important;}
+.border-aurora-green-9 { border-color: #234840 !important;}
+.border-aurora-aqua-9 { border-color: #1d465c !important;}
+.border-aurora-blue-9 { border-color: #164081 !important;}
+.border-aurora-purple-9 { border-color: #3f2f9b !important;}
+.border-aurora-magenta-9 { border-color: #74234e !important;}
+.border-aurora-orange-9 { border-color: #623721 !important;}
+.border-aurora-earth-9 { border-color: #553d1c !important;}
+.border-aurora-gray-8 { border-color: #595959 !important;}
+.border-aurora-green-8 { border-color: #2b6256 !important;}
+.border-aurora-aqua-8 { border-color: #1f5f7b !important;}
+.border-aurora-blue-8 { border-color: #2557a7 !important;}
+.border-aurora-purple-8 { border-color: #5644bf !important;}
+.border-aurora-magenta-8 { border-color: #9d2b6b !important;}
+.border-aurora-orange-8 { border-color: #89471e !important;}
+.border-aurora-earth-8 { border-color: #735324 !important;}
 .border-aurora-gray-7 { border-color: #767676 !important;}
 .border-aurora-green-7 { border-color: #358271 !important;}
 .border-aurora-aqua-7 { border-color: #237ea3 !important;}
@@ -254,3 +278,51 @@ body {  background: transparent !important;}
 .border-aurora-magenta-7 { border-color: #c74289 !important;}
 .border-aurora-orange-7 { border-color: #b4602b !important;}
 .border-aurora-earth-7 { border-color: #996e2c !important;}
+.border-aurora-gray-6 { border-color: #949494 !important;}
+.border-aurora-green-6 { border-color: #4ca38f !important;}
+.border-aurora-aqua-6 { border-color: #409ec8 !important;}
+.border-aurora-blue-6 { border-color: #6792f0 !important;}
+.border-aurora-purple-6 { border-color: #9288ee !important;}
+.border-aurora-magenta-6 { border-color: #e867a8 !important;}
+.border-aurora-orange-6 { border-color: #df7838 !important;}
+.border-aurora-earth-6 { border-color: #c08a38 !important;}
+.border-aurora-gray-5 { border-color: #b4b2b1 !important;}
+.border-aurora-green-5 { border-color: #7bc0ae !important;}
+.border-aurora-aqua-5 { border-color: #7abbdf !important;}
+.border-aurora-blue-5 { border-color: #9bb1f0 !important;}
+.border-aurora-purple-5 { border-color: #b1abf4 !important;}
+.border-aurora-magenta-5 { border-color: #ee99bf !important;}
+.border-aurora-orange-5 { border-color: #f39e78 !important;}
+.border-aurora-earth-5 { border-color: #e0a961 !important;}
+.border-aurora-gray-4 { border-color: #d4d2d0 !important;}
+.border-aurora-green-4 { border-color: #b9dad0 !important;}
+.border-aurora-aqua-4 { border-color: #b6d7ee !important;}
+.border-aurora-blue-4 { border-color: #c7d2f6 !important;}
+.border-aurora-purple-4 { border-color: #d2cef6 !important;}
+.border-aurora-magenta-4 { border-color: #f3c7d9 !important;}
+.border-aurora-orange-4 { border-color: #f7c8b8 !important;}
+.border-aurora-earth-4 { border-color: #f5cb9d !important;}
+.border-aurora-gray-3 { border-color: #e4e2e0 !important;}
+.border-aurora-green-3 { border-color: #cde8e1 !important;}
+.border-aurora-aqua-3 { border-color: #cde6f9 !important;}
+.border-aurora-blue-3 { border-color: #dbe2fd !important;}
+.border-aurora-purple-3 { border-color: #e2e0fd !important;}
+.border-aurora-magenta-3 { border-color: #f9dae8 !important;}
+.border-aurora-orange-3 { border-color: #f9ddd3 !important;}
+.border-aurora-earth-3 { border-color: #f9dec5 !important;}
+.border-aurora-gray-2 { border-color: #f3f2f1 !important;}
+.border-aurora-green-2 { border-color: #e6f5f1 !important;}
+.border-aurora-aqua-2 { border-color: #e8f3fc !important;}
+.border-aurora-blue-2 { border-color: #eef1fe !important;}
+.border-aurora-purple-2 { border-color: #f2f1fe !important;}
+.border-aurora-magenta-2 { border-color: #fceef4 !important;}
+.border-aurora-orange-2 { border-color: #fcefeb !important;}
+.border-aurora-earth-2 { border-color: #fcf0e6 !important;}
+.border-aurora-gray-1 { border-color: #faf9f8 !important;}
+.border-aurora-green-1 { border-color: #f5fbf9 !important;}
+.border-aurora-aqua-1 { border-color: #f5fafe !important;}
+.border-aurora-blue-1 { border-color: #f8f9fe !important;}
+.border-aurora-purple-1 { border-color: #f9f9fe !important;}
+.border-aurora-magenta-1 { border-color: #fdf8fa !important;}
+.border-aurora-orange-1 { border-color: #fef8f7 !important;}
+.border-aurora-earth-1 { border-color: #fef8f4 !important;}
