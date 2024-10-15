@@ -240,3 +240,11 @@ body {  background: transparent !important;}
 .border-bblue {
   border: 3px dashed #003a9b !important;
 }
+
+.border-brandblue {
+  border: #003a9b !important;
+}
+
+.border-brand-blue {
+  border-color: #003a9b !important;
+}
