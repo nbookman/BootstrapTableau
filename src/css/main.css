@@ -104,7 +104,7 @@ body {
 }
 
 .border-blue {
-  border: #003a9b !important;
+  border-color: #003a9b !important;
 }
 
 .border-dotted {
