@@ -103,6 +103,10 @@ body {
   border-style: dashed !important;
 }
 
+.border-blue {
+  border: #003a9b !important;
+}
+
 .border-dotted {
   border-style: dotted !important;
 }
