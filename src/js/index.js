@@ -16,13 +16,14 @@ function saveScrollPosition() {
     lastSaved = now;
     localStorage.setItem('scrollX', window.scrollX);
     localStorage.setItem('scrollY', window.scrollY);
-    console.log('[scroll save]', window.scrollX, window.scrollY);
+    updateDebugTracker();
+    logDebug(`[scroll save] ${window.scrollX}, ${window.scrollY}`);
   }
 }
 
 window.addEventListener('scroll', saveScrollPosition);
 
-console.log('[scroll restore init]', savedScroll);
+logDebug(`[scroll restore init] ${savedScroll.x}, ${savedScroll.y}`);
 window.scrollTo(savedScroll.x, savedScroll.y);
 
 (function () {
@@ -39,15 +40,13 @@ window.scrollTo(savedScroll.x, savedScroll.y);
 
       // Restore scroll again after DOM is painted
       setTimeout(() => {
-        console.log('[scroll restore post-render]', savedScroll);
         window.scrollTo(savedScroll.x, savedScroll.y);
+        logDebug(`[scroll restore post-render] ${savedScroll.x}, ${savedScroll.y}`);
       }, 50);
 
-      // Inject debug UI only if ?debug=true is in URL
       if (window.location.search.includes('debug=true')) {
         injectDebugUI();
       }
-
     } catch (error) {
       console.error("Extension init error:", error);
     }
@@ -91,25 +90,28 @@ window.scrollTo(savedScroll.x, savedScroll.y);
   }
 
   function injectDebugUI() {
-    // Avoid multiple injection
     if ($('#debug-buttons').length) return;
 
-    const $debug = $(`
-      <div id="debug-buttons" style="
+    const $debug = $(
+      `<div id="debug-buttons" style="
         position: fixed; bottom: 10px; left: 10px; 
-        background: rgba(255,255,255,0.9); padding: 8px; 
+        background: rgba(255,255,255,0.95); padding: 8px; 
         border: 1px solid #aaa; border-radius: 4px; z-index: 99999;
         font-family: monospace; font-size: 14px;
+        max-width: 320px;
       ">
-        <button id="btn-save-scroll">Save Scroll</button>
-        <button id="btn-restore-scroll">Restore Scroll</button>
-      </div>
-    `);
+        <div><button id="btn-save-scroll">Save Scroll</button>
+        <button id="btn-restore-scroll">Restore Scroll</button></div>
+        <div id="scroll-status" style="margin-top: 5px; font-size: 12px;"></div>
+        <div id="log-console" style="margin-top: 8px; max-height: 120px; overflow-y: auto; font-size: 12px; background: #f0f0f0; padding: 4px;"></div>
+      </div>`
+    );
 
     const markers = [500, 1000, 1500];
     markers.forEach(pos => {
-      $debug.append(`<div class="scroll-marker" style="
+      $('body').append(`<div style="
         position:absolute; left: 0; width: 100%; height: 2px; background: red; top: ${pos}px;
+        z-index: 9999; pointer-events: none;
       "></div>`);
     });
 
@@ -118,15 +120,36 @@ window.scrollTo(savedScroll.x, savedScroll.y);
     $('#btn-save-scroll').click(() => {
       localStorage.setItem('scrollX', window.scrollX);
       localStorage.setItem('scrollY', window.scrollY);
-      console.log('[manual scroll save]', window.scrollX, window.scrollY);
+      updateDebugTracker();
+      logDebug(`[manual scroll save] ${window.scrollX}, ${window.scrollY}`);
     });
 
     $('#btn-restore-scroll').click(() => {
       const x = parseInt(localStorage.getItem('scrollX') || 0);
       const y = parseInt(localStorage.getItem('scrollY') || 0);
-      console.log('[manual scroll restore]', x, y);
       window.scrollTo(x, y);
+      updateDebugTracker();
+      logDebug(`[manual scroll restore] ${x}, ${y}`);
     });
+
+    updateDebugTracker();
+  }
+
+  function updateDebugTracker() {
+    const scrollStatus = `Scroll: ${window.scrollX}, ${window.scrollY}`;
+    $('#scroll-status').text(scrollStatus);
+  }
+
+  function logDebug(message) {
+    if (!window.location.search.includes('debug=true')) return;
+    const $log = $('#log-console');
+    if ($log.length) {
+      const timestamp = new Date().toLocaleTimeString();
+      $log.append(`<div>[${timestamp}] ${message}</div>`);
+      $log.scrollTop($log[0].scrollHeight);
+    } else {
+      console.log('[DEBUG]', message);
+    }
   }
 
   $(document).ready(() => {
