@@ -1,95 +1,97 @@
 let $ = window.$;
 const tableauExt = window.tableau.extensions;
 
-//Wrap everything into an anonymous function
+// Store scroll between reloads using sessionStorage
+let savedScroll = {
+  x: parseInt(sessionStorage.getItem('scrollX')) || 0,
+  y: parseInt(sessionStorage.getItem('scrollY')) || 0
+};
+
+function saveScrollPosition() {
+  sessionStorage.setItem('scrollX', window.scrollX);
+  sessionStorage.setItem('scrollY', window.scrollY);
+}
+
+// Monitor user scroll and persist it
+window.addEventListener('scroll', saveScrollPosition);
+
+// Immediately apply the saved scroll (if restoring from a reload)
+window.scrollTo(savedScroll.x, savedScroll.y);
+
 (function () {
-    async function init() {
-        //clean up any divs from the last initialization
-        $('body').empty();
-        tableau.extensions.setClickThroughAsync(true).then(() => {
-            let dashboard = tableauExt.dashboardContent.dashboard;
-            //Loop through the Objects on the Dashboard and render the HTML Objects
-            dashboard.objects.forEach(obj => {
-                render(obj);
-            })
-        }).catch((error) => {
-            // Can throw an error if called from a dialog or on Tableau Desktop
-            console.error(error.message);
-        });
+  async function init() {
+    // Save scroll position before re-rendering
+    saveScrollPosition();
+
+    // Remove previously injected divs only (preserve structure)
+    $('body').children('div').remove();
+
+    try {
+      await tableau.extensions.setClickThroughAsync(true);
+
+      const dashboard = tableauExt.dashboardContent.dashboard;
+      dashboard.objects.forEach(render);
+
+      // Restore scroll after rendering (next tick)
+      setTimeout(() => {
+        window.scrollTo(savedScroll.x, savedScroll.y);
+      }, 0);
+
+    } catch (error) {
+      console.error("Tableau extension init error:", error);
     }
+  }
 
-    function getMarginFromObjClasses(objClasses){
-        const margin = [0, 0, 0, 0];
-        if (!objClasses) return margin;
+  // Extract margin classes like "margin-10-5-10-5" to array
+  function getMarginFromObjClasses(objClasses) {
+    const margin = [0, 0, 0, 0];
+    if (!objClasses) return margin;
 
-        const classNames = objClasses.split(/\s+/)
-        classNames.reverse();
-        const marginClass = classNames.find((cl) => cl.startsWith('margin-'));
-        if (!marginClass) return margin;
+    const classNames = objClasses.split(/\s+/).reverse();
+    const marginClass = classNames.find(cl => cl.startsWith('margin-'));
+    if (!marginClass) return margin;
 
-        const marginValues = marginClass.split('-').slice(1).map(v => parseInt(v))
-        if (marginValues.length === 1) {
-            const [all] = marginValues
-            return [all, all, all, all]
-        }
-
-        if (marginValues.length === 2) {
-            const [vertical, horizontal] = marginValues
-            return [vertical, horizontal, vertical, horizontal]
-        }
-
-        if (marginValues.length === 3) {
-            const [top, horizontal, bottom] = marginValues
-            return [top, horizontal, bottom, horizontal]
-        }
-
-        if (marginValues.length === 4) {
-            return marginValues
-        }
-
-        return margin;
+    const values = marginClass.split('-').slice(1).map(Number);
+    switch (values.length) {
+      case 1: return [values[0], values[0], values[0], values[0]];
+      case 2: return [values[0], values[1], values[0], values[1]];
+      case 3: return [values[0], values[1], values[2], values[1]];
+      case 4: return values;
+      default: return margin;
     }
+  }
 
-    async function render(obj) {
-        let objNameAndClasses = obj.name.split("|");
-        //Parse the Name and Classes from the Object Name
-        let objId = objNameAndClasses[0];
-        let objClasses;
-        //Check if there are classes on the object
-        if (objNameAndClasses.length > 1) {
-            objClasses = objNameAndClasses[1];
-        }
-        //Create the initial object with CSS Props
-        
-        // we need to check for padding classes first, as they must be handled via positioning
-        const margin = getMarginFromObjClasses(objClasses)
-        
-        //Here we set the CSS props to match the location of the objects on the Dashboard
-        let props = {
-            id: `${objId}`,
-            css: {
-                'position': 'absolute',
-                'top': `${parseInt(obj.position.y) + margin[0]}px`,
-                'left': `${parseInt(obj.position.x) + margin[3]}px`,
-                'width': `${parseInt(obj.size.width) - margin[1] - margin[3]}px`,
-                'height': `${parseInt(obj.size.height) - margin[0] - margin[2]}px`
-            }
-        }
-        let $div = $('<div>', props);
-        //Add the class to the HTML Body
-        $div.addClass(objClasses);
-        $('body').append($div);
-    }
+  // Render each dashboard object as a positioned div
+  function render(obj) {
+    const [objId, objClasses = ""] = obj.name.split("|");
+    const margin = getMarginFromObjClasses(objClasses);
 
-    $(document).ready(() => {
-        tableauExt.initializeAsync().then(() => {
-            init();
-            //Register an event handler for Dashboard Object resize
-            //Supports automatic sized dashboards and reloads
-            let resizeEventHandler = tableauExt.dashboardContent.dashboard.addEventListener(tableau.TableauEventType.DashboardLayoutChanged, init);
-        }, (err) => {
-            console.log("Broken")
-        });
+    const $div = $('<div>', {
+      id: objId,
+      css: {
+        position: 'absolute',
+        top: `${obj.position.y + margin[0]}px`,
+        left: `${obj.position.x + margin[3]}px`,
+        width: `${obj.size.width - margin[1] - margin[3]}px`,
+        height: `${obj.size.height - margin[0] - margin[2]}px`
+      }
     });
 
+    $div.addClass(objClasses);
+    $('body').append($div);
+  }
+
+  $(document).ready(() => {
+    tableauExt.initializeAsync().then(() => {
+      init();
+
+      // Rerun init when the dashboard layout changes (resizing, etc.)
+      tableauExt.dashboardContent.dashboard.addEventListener(
+        tableau.TableauEventType.DashboardLayoutChanged,
+        init
+      );
+    }).catch(err => {
+      console.error("Initialization failed:", err);
+    });
+  });
 })();
