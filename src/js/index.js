@@ -1,70 +1,79 @@
 let $ = window.$;
 const tableauExt = window.tableau.extensions;
 
-//Wrap everything into an anonymous function
 (function () {
+    // Variables to store current scroll position
+    let scrollX = 0;
+    let scrollY = 0;
+
     async function init() {
-        //clean up any divs from the last initialization
+        // Save the current scroll position before clearing the DOM
+        scrollX = window.scrollX;
+        scrollY = window.scrollY;
+
+        // Remove all elements from the body to prepare for re-render
         $('body').empty();
+
+        // Allow HTML elements to receive click events
         tableau.extensions.setClickThroughAsync(true).then(() => {
             let dashboard = tableauExt.dashboardContent.dashboard;
-            //Loop through the Objects on the Dashboard and render the HTML Objects
+
+            // Render each dashboard object as a DOM element
             dashboard.objects.forEach(obj => {
                 render(obj);
-            })
+            });
+
+            // Restore the scroll position after rendering
+            $(window).scrollTop(scrollY);
+            $(window).scrollLeft(scrollX);
         }).catch((error) => {
-            // Can throw an error if called from a dialog or on Tableau Desktop
-            console.error(error.message);
+            console.error(error.message); // Log any errors
         });
     }
 
-    function getMarginFromObjClasses(objClasses){
-        const margin = [0, 0, 0, 0];
+    function getMarginFromObjClasses(objClasses) {
+        const margin = [0, 0, 0, 0]; // Default margins: top, right, bottom, left
         if (!objClasses) return margin;
 
-        const classNames = objClasses.split(/\s+/)
-        classNames.reverse();
+        const classNames = objClasses.split(/\s+/); // Split classes by whitespace
+        classNames.reverse(); // Prioritize last margin class if multiple exist
+
         const marginClass = classNames.find((cl) => cl.startsWith('margin-'));
         if (!marginClass) return margin;
 
-        const marginValues = marginClass.split('-').slice(1).map(v => parseInt(v))
+        // Extract numerical margin values from class name
+        const marginValues = marginClass.split('-').slice(1).map(v => parseInt(v));
+
+        // Interpret margin shorthand
         if (marginValues.length === 1) {
-            const [all] = marginValues
-            return [all, all, all, all]
+            const [all] = marginValues;
+            return [all, all, all, all];
         }
-
         if (marginValues.length === 2) {
-            const [vertical, horizontal] = marginValues
-            return [vertical, horizontal, vertical, horizontal]
+            const [vertical, horizontal] = marginValues;
+            return [vertical, horizontal, vertical, horizontal];
         }
-
         if (marginValues.length === 3) {
-            const [top, horizontal, bottom] = marginValues
-            return [top, horizontal, bottom, horizontal]
+            const [top, horizontal, bottom] = marginValues;
+            return [top, horizontal, bottom, horizontal];
         }
-
         if (marginValues.length === 4) {
-            return marginValues
+            return marginValues; // Use all four values as-is
         }
 
-        return margin;
+        return margin; // Fallback if format is invalid
     }
 
     async function render(obj) {
+        // Split object name to extract ID and optional CSS classes
         let objNameAndClasses = obj.name.split("|");
-        //Parse the Name and Classes from the Object Name
         let objId = objNameAndClasses[0];
-        let objClasses;
-        //Check if there are classes on the object
-        if (objNameAndClasses.length > 1) {
-            objClasses = objNameAndClasses[1];
-        }
-        //Create the initial object with CSS Props
-        
-        // we need to check for padding classes first, as they must be handled via positioning
-        const margin = getMarginFromObjClasses(objClasses)
-        
-        //Here we set the CSS props to match the location of the objects on the Dashboard
+        let objClasses = objNameAndClasses[1] || "";
+
+        // Get margin values for positioning adjustments
+        const margin = getMarginFromObjClasses(objClasses);
+
+        // Define CSS for the element based on dashboard object position and size
         let props = {
             id: `${objId}`,
             css: {
@@ -74,22 +83,33 @@ const tableauExt = window.tableau.extensions;
                 'width': `${parseInt(obj.size.width) - margin[1] - margin[3]}px`,
                 'height': `${parseInt(obj.size.height) - margin[0] - margin[2]}px`
             }
-        }
+        };
+
+        // Create and style the HTML element
         let $div = $('<div>', props);
-        //Add the class to the HTML Body
         $div.addClass(objClasses);
+
+        // Append the new element to the body
         $('body').append($div);
     }
 
     $(document).ready(() => {
         tableauExt.initializeAsync().then(() => {
-            init();
-            //Register an event handler for Dashboard Object resize
-            //Supports automatic sized dashboards and reloads
-            let resizeEventHandler = tableauExt.dashboardContent.dashboard.addEventListener(tableau.TableauEventType.DashboardLayoutChanged, init);
+            init(); // Initial rendering
+
+            // Re-initialize if the dashboard layout changes (e.g. resize)
+            tableauExt.dashboardContent.dashboard.addEventListener(
+                tableau.TableauEventType.DashboardLayoutChanged,
+                init
+            );
+
+            // Track scroll position on window scroll events
+            $(window).on('scroll', () => {
+                scrollX = window.scrollX;
+                scrollY = window.scrollY;
+            });
         }, (err) => {
-            console.log("Broken")
+            console.log("Broken"); // Initialization failed
         });
     });
-
 })();
