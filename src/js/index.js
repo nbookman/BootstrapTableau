@@ -2,33 +2,32 @@ let $ = window.$;
 const tableauExt = window.tableau.extensions;
 
 (function () {
-    // Robustly stored scroll position
+    const $scrollContainer = $('#scroll-container');
+    const $contentRoot = $('#content-root');
     let savedScroll = { x: 0, y: 0 };
     let hasRenderedOnce = false;
 
     async function init() {
-        // Save scroll position after first render
+        // Save scroll position from container if re-rendering
         if (hasRenderedOnce) {
-            savedScroll.x = window.scrollX;
-            savedScroll.y = window.scrollY;
+            savedScroll.x = $scrollContainer.scrollLeft();
+            savedScroll.y = $scrollContainer.scrollTop();
         }
 
-        // Clear only injected divs, not entire body
-        $('body').children('div').filter(function() {
-            return this.id !== 'tableau_placeholder';
-        }).remove();
+        // Clear only the dynamic content
+        $contentRoot.empty();
 
         try {
             await tableau.extensions.setClickThroughAsync(true);
             const dashboard = tableauExt.dashboardContent.dashboard;
 
-            // Render all dashboard objects
+            // Render each object inside the content root
             dashboard.objects.forEach(render);
 
-            // Delay scroll restore to avoid race with rendering
             if (hasRenderedOnce) {
                 requestAnimationFrame(() => {
-                    window.scrollTo(savedScroll.x, savedScroll.y);
+                    $scrollContainer.scrollLeft(savedScroll.x);
+                    $scrollContainer.scrollTop(savedScroll.y);
                 });
             }
 
@@ -71,7 +70,7 @@ const tableauExt = window.tableau.extensions;
         $('<div>', {
             id: objId,
             css: style
-        }).addClass(objClasses).appendTo('body');
+        }).addClass(objClasses).appendTo($contentRoot);
     }
 
     $(document).ready(() => {
@@ -83,10 +82,10 @@ const tableauExt = window.tableau.extensions;
                 init
             );
 
-            $(window).on('scroll', () => {
+            $scrollContainer.on('scroll', () => {
                 if (hasRenderedOnce) {
-                    savedScroll.x = window.scrollX;
-                    savedScroll.y = window.scrollY;
+                    savedScroll.x = $scrollContainer.scrollLeft();
+                    savedScroll.y = $scrollContainer.scrollTop();
                 }
             });
         }).catch(err => {
