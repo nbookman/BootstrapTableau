@@ -2,114 +2,95 @@ let $ = window.$;
 const tableauExt = window.tableau.extensions;
 
 (function () {
-    // Variables to store current scroll position
-    let scrollX = 0;
-    let scrollY = 0;
+    // Robustly stored scroll position
+    let savedScroll = { x: 0, y: 0 };
+    let hasRenderedOnce = false;
 
     async function init() {
-        // Save the current scroll position before clearing the DOM
-        scrollX = window.scrollX;
-        scrollY = window.scrollY;
+        // Save scroll position after first render
+        if (hasRenderedOnce) {
+            savedScroll.x = window.scrollX;
+            savedScroll.y = window.scrollY;
+        }
 
-        // Remove all elements from the body to prepare for re-render
-        $('body').empty();
+        // Clear only injected divs, not entire body
+        $('body').children('div').filter(function() {
+            return this.id !== 'tableau_placeholder';
+        }).remove();
 
-        // Allow HTML elements to receive click events
-        tableau.extensions.setClickThroughAsync(true).then(() => {
-            let dashboard = tableauExt.dashboardContent.dashboard;
+        try {
+            await tableau.extensions.setClickThroughAsync(true);
+            const dashboard = tableauExt.dashboardContent.dashboard;
 
-            // Render each dashboard object as a DOM element
-            dashboard.objects.forEach(obj => {
-                render(obj);
-            });
+            // Render all dashboard objects
+            dashboard.objects.forEach(render);
 
-            // Restore the scroll position after rendering
-            $(window).scrollTop(scrollY);
-            $(window).scrollLeft(scrollX);
-        }).catch((error) => {
-            console.error(error.message); // Log any errors
-        });
+            // Delay scroll restore to avoid race with rendering
+            if (hasRenderedOnce) {
+                requestAnimationFrame(() => {
+                    window.scrollTo(savedScroll.x, savedScroll.y);
+                });
+            }
+
+            hasRenderedOnce = true;
+        } catch (error) {
+            console.error("Tableau extension error:", error);
+        }
     }
 
     function getMarginFromObjClasses(objClasses) {
-        const margin = [0, 0, 0, 0]; // Default margins: top, right, bottom, left
+        const margin = [0, 0, 0, 0];
         if (!objClasses) return margin;
 
-        const classNames = objClasses.split(/\s+/); // Split classes by whitespace
-        classNames.reverse(); // Prioritize last margin class if multiple exist
-
-        const marginClass = classNames.find((cl) => cl.startsWith('margin-'));
+        const classNames = objClasses.trim().split(/\s+/).reverse();
+        const marginClass = classNames.find(cl => cl.startsWith('margin-'));
         if (!marginClass) return margin;
 
-        // Extract numerical margin values from class name
-        const marginValues = marginClass.split('-').slice(1).map(v => parseInt(v));
-
-        // Interpret margin shorthand
-        if (marginValues.length === 1) {
-            const [all] = marginValues;
-            return [all, all, all, all];
+        const values = marginClass.split('-').slice(1).map(Number);
+        switch (values.length) {
+            case 1: return [values[0], values[0], values[0], values[0]];
+            case 2: return [values[0], values[1], values[0], values[1]];
+            case 3: return [values[0], values[1], values[2], values[1]];
+            case 4: return values;
+            default: return margin;
         }
-        if (marginValues.length === 2) {
-            const [vertical, horizontal] = marginValues;
-            return [vertical, horizontal, vertical, horizontal];
-        }
-        if (marginValues.length === 3) {
-            const [top, horizontal, bottom] = marginValues;
-            return [top, horizontal, bottom, horizontal];
-        }
-        if (marginValues.length === 4) {
-            return marginValues; // Use all four values as-is
-        }
-
-        return margin; // Fallback if format is invalid
     }
 
-    async function render(obj) {
-        // Split object name to extract ID and optional CSS classes
-        let objNameAndClasses = obj.name.split("|");
-        let objId = objNameAndClasses[0];
-        let objClasses = objNameAndClasses[1] || "";
-
-        // Get margin values for positioning adjustments
+    function render(obj) {
+        const [objId, objClasses = ""] = obj.name.split("|");
         const margin = getMarginFromObjClasses(objClasses);
 
-        // Define CSS for the element based on dashboard object position and size
-        let props = {
-            id: `${objId}`,
-            css: {
-                'position': 'absolute',
-                'top': `${parseInt(obj.position.y) + margin[0]}px`,
-                'left': `${parseInt(obj.position.x) + margin[3]}px`,
-                'width': `${parseInt(obj.size.width) - margin[1] - margin[3]}px`,
-                'height': `${parseInt(obj.size.height) - margin[0] - margin[2]}px`
-            }
+        const style = {
+            position: 'absolute',
+            top: `${obj.position.y + margin[0]}px`,
+            left: `${obj.position.x + margin[3]}px`,
+            width: `${obj.size.width - margin[1] - margin[3]}px`,
+            height: `${obj.size.height - margin[0] - margin[2]}px`
         };
 
-        // Create and style the HTML element
-        let $div = $('<div>', props);
-        $div.addClass(objClasses);
-
-        // Append the new element to the body
-        $('body').append($div);
+        $('<div>', {
+            id: objId,
+            css: style
+        }).addClass(objClasses).appendTo('body');
     }
 
     $(document).ready(() => {
         tableauExt.initializeAsync().then(() => {
-            init(); // Initial rendering
+            init();
 
-            // Re-initialize if the dashboard layout changes (e.g. resize)
             tableauExt.dashboardContent.dashboard.addEventListener(
                 tableau.TableauEventType.DashboardLayoutChanged,
                 init
             );
 
-            // Track scroll position on window scroll events
             $(window).on('scroll', () => {
-                scrollX = window.scrollX;
-                scrollY = window.scrollY;
+                if (hasRenderedOnce) {
+                    savedScroll.x = window.scrollX;
+                    savedScroll.y = window.scrollY;
+                }
             });
-        }, (err) => {
-            console.log("Broken"); // Initialization failed
+        }).catch(err => {
+            console.error("Initialization failed:", err);
         });
     });
 })();
