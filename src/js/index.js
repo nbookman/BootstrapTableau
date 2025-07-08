@@ -6,8 +6,9 @@ const throttleDelay = 200; // ms between scroll saves
 
 // Use localStorage for durability
 let savedScroll = {
-  x: parseInt(localStorage.getItem('scrollX')) || 0,
-  y: parseInt(localStorage.getItem('scrollY')) || 0
+  // FIX: Added radix 10 to parseInt for safety and best practice.
+  x: parseInt(localStorage.getItem('scrollX'), 10) || 0,
+  y: parseInt(localStorage.getItem('scrollY'), 10) || 0
 };
 
 function saveScrollPosition() {
@@ -28,7 +29,9 @@ window.scrollTo(savedScroll.x, savedScroll.y);
 
 (function () {
   async function init() {
-    saveScrollPosition(); // pre-cleanup
+    // FIX: Removed redundant and potentially problematic call to saveScrollPosition().
+    // The scroll event listener is sufficient.
+
     $('body').children('div').remove();
 
     try {
@@ -37,11 +40,14 @@ window.scrollTo(savedScroll.x, savedScroll.y);
       const dashboard = tableauExt.dashboardContent.dashboard;
       dashboard.objects.forEach(render);
 
-      // Restore scroll again after DOM is painted
-      setTimeout(() => {
-        window.scrollTo(savedScroll.x, savedScroll.y);
-        logDebug(`[scroll restore post-render] ${savedScroll.x}, ${savedScroll.y}`);
-      }, 50);
+      // FIX: Replaced unreliable setTimeout with a nested requestAnimationFrame.
+      // This ensures scrolling occurs *after* the browser has calculated the new layout.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.scrollTo(savedScroll.x, savedScroll.y);
+          logDebug(`[scroll restore post-render] ${savedScroll.x}, ${savedScroll.y}`);
+        });
+      });
 
       if (window.location.search.includes('debug=true')) {
         injectDebugUI();
@@ -77,8 +83,8 @@ window.scrollTo(savedScroll.x, savedScroll.y);
       id: objId,
       css: {
         position: 'absolute',
-        top: `${obj.position.y + margin[0] - window.scrollY}px`,
-        left: `${obj.position.x + margin[3] - window.scrollX}px`,
+        top: `${obj.position.y + margin[0]}px`,
+        left: `${obj.position.x + margin[3]}px`,
         width: `${obj.size.width - margin[1] - margin[3]}px`,
         height: `${obj.size.height - margin[0] - margin[2]}px`
       }
@@ -91,27 +97,27 @@ window.scrollTo(savedScroll.x, savedScroll.y);
   function injectDebugUI() {
     if ($('#debug-buttons').length) return;
 
-    const $debug = $(`
-      <div id="debug-buttons" style="
+    const $debug = $(
+      `<div id="debug-buttons" style="
         position: fixed; bottom: 10px; left: 10px; 
         background: rgba(255,255,255,0.95); padding: 8px; 
         border: 1px solid #aaa; border-radius: 4px; z-index: 99999;
         font-family: monospace; font-size: 14px;
-        max-width: 320px;">
-        <div>
-          <button id="btn-save-scroll">Save Scroll</button>
-          <button id="btn-restore-scroll">Restore Scroll</button>
-        </div>
+        max-width: 320px;
+      ">
+        <div><button id="btn-save-scroll">Save Scroll</button>
+        <button id="btn-restore-scroll">Restore Scroll</button></div>
         <div id="scroll-status" style="margin-top: 5px; font-size: 12px;"></div>
         <div id="log-console" style="margin-top: 8px; max-height: 120px; overflow-y: auto; font-size: 12px; background: #f0f0f0; padding: 4px;"></div>
-      </div>
-    `);
+      </div>`
+    );
 
     const markers = [500, 1000, 1500];
     markers.forEach(pos => {
       $('body').append(`<div style="
         position:absolute; left: 0; width: 100%; height: 2px; background: red; top: ${pos}px;
-        z-index: 9999; pointer-events: none;"></div>`);
+        z-index: 9999; pointer-events: none;
+      "></div>`);
     });
 
     $('body').append($debug);
@@ -124,8 +130,9 @@ window.scrollTo(savedScroll.x, savedScroll.y);
     });
 
     $('#btn-restore-scroll').click(() => {
-      const x = parseInt(localStorage.getItem('scrollX') || 0);
-      const y = parseInt(localStorage.getItem('scrollY') || 0);
+      // FIX: Added radix 10 to parseInt
+      const x = parseInt(localStorage.getItem('scrollX'), 10) || 0;
+      const y = parseInt(localStorage.getItem('scrollY'), 10) || 0;
       window.scrollTo(x, y);
       updateDebugTracker();
       logDebug(`[manual scroll restore] ${x}, ${y}`);
@@ -154,6 +161,7 @@ window.scrollTo(savedScroll.x, savedScroll.y);
   $(document).ready(() => {
     tableauExt.initializeAsync().then(() => {
       init();
+
       tableauExt.dashboardContent.dashboard.addEventListener(
         tableau.TableauEventType.DashboardLayoutChanged,
         init
