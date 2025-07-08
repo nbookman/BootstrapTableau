@@ -9,6 +9,7 @@ const tableauExt = window.tableau.extensions;
   // Listen for scroll updates from parent window via postMessage
   window.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'scroll') {
+      console.log('Received scroll message in iframe:', event.data.scrollX, event.data.scrollY);
       savedScroll.x = event.data.scrollX;
       savedScroll.y = event.data.scrollY;
     }
