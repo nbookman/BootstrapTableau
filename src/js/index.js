@@ -69,8 +69,8 @@ const tableauExt = window.tableau.extensions;
             id: `${objId}`,
             css: {
                 'position': 'absolute',
-                top: `${obj.position.y + margin[0]}px`,       // <-- Removed subtraction of window.scrollY
-                left: `${obj.position.x + margin[3]}px`,      // <-- Removed subtraction of window.scrollX
+                top: `${obj.position.y + margin[0] + window.scrollY}px`,
+                left: `${obj.position.x + margin[3] + window.scrollX}px`,
                 'width': `${parseInt(obj.size.width) - margin[1] - margin[3]}px`,
                 'height': `${parseInt(obj.size.height) - margin[0] - margin[2]}px`
             }
