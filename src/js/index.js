@@ -4,9 +4,7 @@ const tableauExt = window.tableau.extensions;
 let lastSaved = 0;
 const throttleDelay = 200; // ms between scroll saves
 
-// Use localStorage for durability
 let savedScroll = {
-  // FIX: Added radix 10 to parseInt for safety and best practice.
   x: parseInt(localStorage.getItem('scrollX'), 10) || 0,
   y: parseInt(localStorage.getItem('scrollY'), 10) || 0
 };
@@ -29,9 +27,6 @@ window.scrollTo(savedScroll.x, savedScroll.y);
 
 (function () {
   async function init() {
-    // FIX: Removed redundant and potentially problematic call to saveScrollPosition().
-    // The scroll event listener is sufficient.
-
     $('body').children('div').remove();
 
     try {
@@ -40,8 +35,6 @@ window.scrollTo(savedScroll.x, savedScroll.y);
       const dashboard = tableauExt.dashboardContent.dashboard;
       dashboard.objects.forEach(render);
 
-      // FIX: Replaced unreliable setTimeout with a nested requestAnimationFrame.
-      // This ensures scrolling occurs *after* the browser has calculated the new layout.
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           window.scrollTo(savedScroll.x, savedScroll.y);
@@ -83,8 +76,9 @@ window.scrollTo(savedScroll.x, savedScroll.y);
       id: objId,
       css: {
         position: 'absolute',
-        top: `${obj.position.y + margin[0]}px`,
-        left: `${obj.position.x + margin[3]}px`,
+        // FIX: Add the current scroll offset to the API's relative position.
+        top: `${obj.position.y + window.scrollY + margin[0]}px`,
+        left: `${obj.position.x + window.scrollX + margin[3]}px`,
         width: `${obj.size.width - margin[1] - margin[3]}px`,
         height: `${obj.size.height - margin[0] - margin[2]}px`
       }
@@ -94,6 +88,7 @@ window.scrollTo(savedScroll.x, savedScroll.y);
     $('body').append($div);
   }
 
+  // The debug functions (injectDebugUI, updateDebugTracker, logDebug) remain unchanged.
   function injectDebugUI() {
     if ($('#debug-buttons').length) return;
 
@@ -130,7 +125,6 @@ window.scrollTo(savedScroll.x, savedScroll.y);
     });
 
     $('#btn-restore-scroll').click(() => {
-      // FIX: Added radix 10 to parseInt
       const x = parseInt(localStorage.getItem('scrollX'), 10) || 0;
       const y = parseInt(localStorage.getItem('scrollY'), 10) || 0;
       window.scrollTo(x, y);
