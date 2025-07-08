@@ -2,36 +2,30 @@ let $ = window.$;
 const tableauExt = window.tableau.extensions;
 
 (function () {
-    const $scrollContainer = $('#scroll-container');
-    const $contentRoot = $('#content-root');
-    let savedScroll = { x: 0, y: 0 };
-    let hasRenderedOnce = false;
+    // Persist scroll across reloads using sessionStorage
+    const SCROLL_KEY = 'lastScrollPosition';
 
     async function init() {
-        // Save scroll position from container if re-rendering
-        if (hasRenderedOnce) {
-            savedScroll.x = $scrollContainer.scrollLeft();
-            savedScroll.y = $scrollContainer.scrollTop();
-        }
+        // Save scroll before reload
+        const saved = sessionStorage.getItem(SCROLL_KEY);
+        const savedScroll = saved ? JSON.parse(saved) : { x: 0, y: 0 };
 
-        // Clear only the dynamic content
-        $contentRoot.empty();
+        // Clear only injected divs, not entire body
+        $('body').children('div').filter(function() {
+            return this.id !== 'tableau_placeholder';
+        }).remove();
 
         try {
             await tableau.extensions.setClickThroughAsync(true);
             const dashboard = tableauExt.dashboardContent.dashboard;
 
-            // Render each object inside the content root
+            // Render all dashboard objects
             dashboard.objects.forEach(render);
 
-            if (hasRenderedOnce) {
-                requestAnimationFrame(() => {
-                    $scrollContainer.scrollLeft(savedScroll.x);
-                    $scrollContainer.scrollTop(savedScroll.y);
-                });
-            }
-
-            hasRenderedOnce = true;
+            // Restore scroll position only after layout
+            requestAnimationFrame(() => {
+                window.scrollTo(savedScroll.x, savedScroll.y);
+            });
         } catch (error) {
             console.error("Tableau extension error:", error);
         }
@@ -70,7 +64,7 @@ const tableauExt = window.tableau.extensions;
         $('<div>', {
             id: objId,
             css: style
-        }).addClass(objClasses).appendTo($contentRoot);
+        }).addClass(objClasses).appendTo('body');
     }
 
     $(document).ready(() => {
@@ -82,11 +76,12 @@ const tableauExt = window.tableau.extensions;
                 init
             );
 
-            $scrollContainer.on('scroll', () => {
-                if (hasRenderedOnce) {
-                    savedScroll.x = $scrollContainer.scrollLeft();
-                    savedScroll.y = $scrollContainer.scrollTop();
-                }
+            $(window).on('scroll', () => {
+                // Store scroll in sessionStorage so it persists through reload
+                sessionStorage.setItem('lastScrollPosition', JSON.stringify({
+                    x: window.scrollX,
+                    y: window.scrollY
+                }));
             });
         }).catch(err => {
             console.error("Initialization failed:", err);
