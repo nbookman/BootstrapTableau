@@ -6,16 +6,11 @@ const tableauExt = window.tableau.extensions;
 let lastSaved = 0;
 const throttleDelay = 200; // ms between scroll saves
 
-// Use localStorage for durability and add radix 10 to parseInt.
 let savedScroll = {
   x: parseInt(localStorage.getItem('scrollX'), 10) || 0,
   y: parseInt(localStorage.getItem('scrollY'), 10) || 0
 };
 
-/**
- * Saves the current scroll position to localStorage, throttled to prevent
- * excessive writes on every scroll event.
- */
 function saveScrollPosition() {
   const now = Date.now();
   if (now - lastSaved > throttleDelay) {
@@ -27,34 +22,24 @@ function saveScrollPosition() {
   }
 }
 
-// Attach a listener to the window's scroll event.
 window.addEventListener('scroll', saveScrollPosition);
 
-// Immediately try to restore scroll on script load.
 logDebug(`[scroll restore init] ${savedScroll.x}, ${savedScroll.y}`);
 window.scrollTo(savedScroll.x, savedScroll.y);
 
-// IIFE to contain the main extension logic.
 (function () {
-  /**
-   * Initializes the extension, clears the old layout, and re-renders the new one.
-   */
   async function init() {
-    // 1. Clear the body. This will likely reset scrollY to 0 temporarily.
-    $('body').children('div').remove();
+    // FIX: Only clear the dedicated container, not the whole body.
+    $('#dashboard-container').empty();
 
     try {
       await tableau.extensions.setClickThroughAsync(true);
       const dashboard = tableauExt.dashboardContent.dashboard;
 
-      // 2. Use requestAnimationFrame to schedule the scroll restoration.
       requestAnimationFrame(() => {
-        // 3. FIRST, restore the scroll position.
         window.scrollTo(savedScroll.x, savedScroll.y);
         logDebug(`[scroll restore pre-render] ${savedScroll.x}, ${savedScroll.y}`);
 
-        // 4. THEN, in the next animation frame, render the objects.
-        // This guarantees that when render() runs, window.scrollY has the correct value.
         requestAnimationFrame(() => {
           logDebug(`Rendering with scrollY = ${window.scrollY}`);
           dashboard.objects.forEach(render);
@@ -69,11 +54,6 @@ window.scrollTo(savedScroll.x, savedScroll.y);
     }
   }
 
-  /**
-   * Parses margin values from a CSS-like class name (e.g., "margin-10-20").
-   * @param {string} objClasses - The string of class names.
-   * @returns {number[]} An array representing top, right, bottom, left margins.
-   */
   function getMarginFromObjClasses(objClasses) {
     const margin = [0, 0, 0, 0];
     if (!objClasses) return margin;
@@ -92,10 +72,6 @@ window.scrollTo(savedScroll.x, savedScroll.y);
     }
   }
 
-  /**
-   * Renders a single dashboard object as a div with absolute positioning.
-   * @param {object} obj - A dashboard object from the Tableau Extensions API.
-   */
   function render(obj) {
     const [objId, objClasses = ""] = obj.name.split("|");
     const margin = getMarginFromObjClasses(objClasses);
@@ -104,7 +80,6 @@ window.scrollTo(savedScroll.x, savedScroll.y);
       id: objId,
       css: {
         position: 'absolute',
-        // Calculate absolute position by adding the current scroll offset.
         top: `${obj.position.y + window.scrollY + margin[0]}px`,
         left: `${obj.position.x + window.scrollX + margin[3]}px`,
         width: `${obj.size.width - margin[1] - margin[3]}px`,
@@ -113,12 +88,10 @@ window.scrollTo(savedScroll.x, savedScroll.y);
     });
 
     $div.addClass(objClasses);
-    $('body').append($div);
+    // FIX: Append to the dedicated container.
+    $('#dashboard-container').append($div);
   }
 
-  /**
-   * Injects a debug UI into the DOM if not already present.
-   */
   function injectDebugUI() {
     if ($('#debug-buttons').length) return;
 
@@ -136,39 +109,16 @@ window.scrollTo(savedScroll.x, savedScroll.y);
       </div>`
     );
 
+    // FIX: Append debug UI to the body so it's not cleared on re-render.
     $('body').append($debug);
-
-    $('#btn-save-scroll').click(() => {
-      localStorage.setItem('scrollX', window.scrollX);
-      localStorage.setItem('scrollY', window.scrollY);
-      updateDebugTracker();
-      logDebug(`[manual scroll save] ${window.scrollX}, ${window.scrollY}`);
-    });
-
-    $('#btn-restore-scroll').click(() => {
-      const x = parseInt(localStorage.getItem('scrollX'), 10) || 0;
-      const y = parseInt(localStorage.getItem('scrollY'), 10) || 0;
-      window.scrollTo(x, y);
-      updateDebugTracker();
-      logDebug(`[manual scroll restore] ${x}, ${y}`);
-    });
-
-    updateDebugTracker();
   }
 
-  /**
-   * Updates the scroll status text in the debug UI.
-   */
   function updateDebugTracker() {
     if (!$('#debug-buttons').length) return;
     const scrollStatus = `Scroll: ${window.scrollX}, ${window.scrollY}`;
     $('#scroll-status').text(scrollStatus);
   }
 
-  /**
-   * Logs a message to the debug console UI or the browser console.
-   * @param {string} message - The message to log.
-   */
   function logDebug(message) {
     if (!window.location.search.includes('debug=true')) return;
     const $log = $('#log-console');
@@ -181,12 +131,10 @@ window.scrollTo(savedScroll.x, savedScroll.y);
     }
   }
 
-  // When the document is ready, initialize the Tableau Extension.
   $(document).ready(() => {
     tableauExt.initializeAsync().then(() => {
-      init(); // Run initial render.
+      init();
 
-      // Add an event listener to re-render when the dashboard layout changes.
       tableauExt.dashboardContent.dashboard.addEventListener(
         tableau.TableauEventType.DashboardLayoutChanged,
         init
