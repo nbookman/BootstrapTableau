@@ -1,10 +1,10 @@
-// index.js
+// index.js - v4
 
 let $ = window.$;
 const tableauExt = window.tableau.extensions;
 
 let lastSaved = 0;
-const throttleDelay = 200; // ms between scroll saves
+const throttleDelay = 200;
 
 let savedScroll = {
   x: parseInt(localStorage.getItem('scrollX'), 10) || 0,
@@ -38,7 +38,7 @@ window.addEventListener('scroll', saveScrollPosition);
 
       requestAnimationFrame(() => {
         window.scrollTo(savedScroll.x, savedScroll.y);
-        logDebug(`[scroll restore] ${savedScroll.x}, ${savedScroll.y}`);
+        logDebug(`[scroll restore - v4] ${savedScroll.x}, ${savedScroll.y}`);
 
         requestAnimationFrame(() => {
           logDebug(`Rendering with scrollY = ${window.scrollY}`);
@@ -52,17 +52,14 @@ window.addEventListener('scroll', saveScrollPosition);
     } catch (error) {
       console.error("Extension init error:", error);
     }
-    // FIX: The extra closing brace '}' that was here has been removed.
   }
 
   function getMarginFromObjClasses(objClasses) {
     const margin = [0, 0, 0, 0];
     if (!objClasses) return margin;
-
     const classNames = objClasses.split(/\s+/).reverse();
     const marginClass = classNames.find(cl => cl.startsWith('margin-'));
     if (!marginClass) return margin;
-
     const values = marginClass.split('-').slice(1).map(Number);
     switch (values.length) {
       case 1: return [values[0], values[0], values[0], values[0]];
@@ -76,7 +73,6 @@ window.addEventListener('scroll', saveScrollPosition);
   function render(obj) {
     const [objId, objClasses = ""] = obj.name.split("|");
     const margin = getMarginFromObjClasses(objClasses);
-
     const $div = $('<div>', {
       id: objId,
       css: {
@@ -87,37 +83,27 @@ window.addEventListener('scroll', saveScrollPosition);
         height: `${obj.size.height - margin[0] - margin[2]}px`
       }
     });
-
     $div.addClass(objClasses);
     $('#dashboard-container').append($div);
   }
 
   function injectDebugUI() {
     if ($('#debug-buttons').length) return;
-
     const $debug = $(
-      `<div id="debug-buttons" style="
-        position: fixed; bottom: 10px; left: 10px; background: rgba(255,255,255,0.95);
-        padding: 8px; border: 1px solid #aaa; border-radius: 4px; z-index: 99999;
-        font-family: monospace; font-size: 14px; max-width: 320px;
-      ">
+      `<div id="debug-buttons" style="position: fixed; bottom: 10px; left: 10px; background: rgba(255,255,255,0.95); padding: 8px; border: 1px solid #aaa; border-radius: 4px; z-index: 99999; font-family: monospace; font-size: 14px; max-width: 320px;">
         <div><button id="btn-save-scroll">Save Scroll</button>
         <button id="btn-restore-scroll">Restore Scroll</button></div>
         <div id="scroll-status" style="margin-top: 5px; font-size: 12px;"></div>
-        <div id="log-console" style="margin-top: 8px; max-height: 120px; overflow-y: auto;
-          font-size: 12px; background: #f0f0f0; padding: 4px;"></div>
+        <div id="log-console" style="margin-top: 8px; max-height: 120px; overflow-y: auto; font-size: 12px; background: #f0f0f0; padding: 4px;"></div>
       </div>`
     );
-
     $('body').append($debug);
-
     $('#btn-save-scroll').click(() => {
       localStorage.setItem('scrollX', window.scrollX);
       localStorage.setItem('scrollY', window.scrollY);
       updateDebugTracker();
       logDebug(`[manual scroll save] ${window.scrollX}, ${window.scrollY}`);
     });
-
     $('#btn-restore-scroll').click(() => {
       const x = parseInt(localStorage.getItem('scrollX'), 10) || 0;
       const y = parseInt(localStorage.getItem('scrollY'), 10) || 0;
@@ -125,7 +111,6 @@ window.addEventListener('scroll', saveScrollPosition);
       updateDebugTracker();
       logDebug(`[manual scroll restore] ${x}, ${y}`);
     });
-
     updateDebugTracker();
   }
 
@@ -150,7 +135,6 @@ window.addEventListener('scroll', saveScrollPosition);
   $(document).ready(() => {
     tableauExt.initializeAsync().then(() => {
       init();
-
       tableauExt.dashboardContent.dashboard.addEventListener(
         tableau.TableauEventType.DashboardLayoutChanged,
         init
