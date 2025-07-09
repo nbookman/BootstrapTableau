@@ -49,7 +49,27 @@ const tableauExt = window.tableau.extensions;
 
         return margin;
     }
-
+    
+ function updateElementPositions() {
+        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        
+        let dashboard = tableauExt.dashboardContent.dashboard;
+        dashboard.objects.forEach(obj => {
+            let objId = obj.name.split("|")[0];
+            let objClasses = obj.name.split("|")[1];
+            const margin = getMarginFromObjClasses(objClasses);
+            
+            let $element = $(`#${objId}`);
+            if ($element.length > 0) {
+                $element.css({
+                    'top': `${parseInt(obj.position.y) + margin[0] - scrollY}px`,
+                    'left': `${parseInt(obj.position.x) + margin[3] - scrollX}px`
+                });
+            }
+        });
+    }
+    
     async function render(obj) {
         let objNameAndClasses = obj.name.split("|");
         // Parse the Name and Classes from the Object Name
@@ -64,13 +84,17 @@ const tableauExt = window.tableau.extensions;
         // we need to check for padding classes first, as they must be handled via positioning
         const margin = getMarginFromObjClasses(objClasses);
 
+         // Get current scroll position for viewport-relative positioning
+        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        
         // Here we set the CSS props to match the location of the objects on the Dashboard
         let props = {
             id: `${objId}`,
             css: {
                 'position': 'fixed',
-                top: `${obj.position.y + margin[0] + window.scrollY}px`,
-                left: `${obj.position.x + margin[3] + window.scrollX}px`,
+                'top': `${parseInt(obj.position.y) + margin[0] - scrollY}px`,
+                'left': `${parseInt(obj.position.x) + margin[3] - scrollX}px`,
                 'width': `${parseInt(obj.size.width) - margin[1] - margin[3]}px`,
                 'height': `${parseInt(obj.size.height) - margin[0] - margin[2]}px`
             }
@@ -87,6 +111,10 @@ const tableauExt = window.tableau.extensions;
             // Register an event handler for Dashboard Object resize
             // Supports automatic sized dashboards and reloads
             tableauExt.dashboardContent.dashboard.addEventListener(tableau.TableauEventType.DashboardLayoutChanged, init);
+                        
+            //Add scroll event listener to update element positions when scrolling
+            window.addEventListener('scroll', updateElementPositions);
+            
         }, (err) => {
             console.log("Broken");
         });
