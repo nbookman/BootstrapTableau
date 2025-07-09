@@ -54,7 +54,8 @@ const tableauExt = window.tableau.extensions;
         const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
         const scrollY = window.pageYOffset || document.documentElement.scrollTop;
         
-        console.log(`Scroll position: X=${scrollX}, Y=${scrollY}`);
+        // Show scroll position in page title for debugging
+        document.title = `Scroll: X=${scrollX}, Y=${scrollY}`;
         
         let dashboard = tableauExt.dashboardContent.dashboard;
         dashboard.objects.forEach(obj => {
@@ -116,15 +117,15 @@ const tableauExt = window.tableau.extensions;
             
             //Add scroll event listeners to update element positions when scrolling
             // Try multiple approaches to detect scroll events in Tableau Desktop
-            console.log('Setting up scroll event listeners...');
+            alert('Setting up scroll event listeners...');
             
             window.addEventListener('scroll', function() {
-                console.log('Window scroll detected');
+                alert('Window scroll detected');
                 updateElementPositions();
             });
             
             document.addEventListener('scroll', function() {
-                console.log('Document scroll detected');
+                alert('Document scroll detected');
                 updateElementPositions();
             });
             
@@ -132,12 +133,12 @@ const tableauExt = window.tableau.extensions;
             try {
                 if (parent && parent.window && parent.window !== window) {
                     parent.window.addEventListener('scroll', function() {
-                        console.log('Parent window scroll detected');
+                        alert('Parent window scroll detected');
                         updateElementPositions();
                     });
                 }
             } catch (e) {
-                console.log('Cannot access parent window scroll events:', e.message);
+                alert('Cannot access parent window scroll events: ' + e.message);
             }
         }, (err) => {
             console.log("Broken")
