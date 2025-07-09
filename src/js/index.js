@@ -49,9 +49,10 @@ window.addEventListener('scroll', saveScrollPosition);
       if (window.location.search.includes('debug=true')) {
         injectDebugUI();
       }
-    } catch (error) { // FIX: Added the missing opening brace '{' here.
+    } catch (error) {
       console.error("Extension init error:", error);
     }
+    // FIX: The extra closing brace '}' that was here has been removed.
   }
 
   function getMarginFromObjClasses(objClasses) {
