@@ -115,31 +115,34 @@ const tableauExt = window.tableau.extensions;
             //Supports automatic sized dashboards and reloads
             let resizeEventHandler = tableauExt.dashboardContent.dashboard.addEventListener(tableau.TableauEventType.DashboardLayoutChanged, init);
             
-            //Add scroll event listeners to update element positions when scrolling
-            // Try multiple approaches to detect scroll events in Tableau Desktop
-            alert('Setting up scroll event listeners...');
+            //Since scroll events don't work in Tableau Desktop, use polling to detect scroll changes
+            alert('Setting up scroll position polling...');
             
-            window.addEventListener('scroll', function() {
-                alert('Window scroll detected');
-                updateElementPositions();
-            });
+            let lastScrollX = 0;
+            let lastScrollY = 0;
+            let scrollCheckCount = 0;
             
-            document.addEventListener('scroll', function() {
-                alert('Document scroll detected');
-                updateElementPositions();
-            });
-            
-            // Also try listening to parent if accessible
-            try {
-                if (parent && parent.window && parent.window !== window) {
-                    parent.window.addEventListener('scroll', function() {
-                        alert('Parent window scroll detected');
-                        updateElementPositions();
-                    });
+            function checkScrollPosition() {
+                const currentScrollX = window.pageXOffset || document.documentElement.scrollLeft;
+                const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+                
+                scrollCheckCount++;
+                
+                // Show we're checking (every 60 checks = ~1 second)
+                if (scrollCheckCount % 60 === 0) {
+                    document.title = `Checking scroll: X=${currentScrollX}, Y=${currentScrollY}`;
                 }
-            } catch (e) {
-                alert('Cannot access parent window scroll events: ' + e.message);
+                
+                if (currentScrollX !== lastScrollX || currentScrollY !== lastScrollY) {
+                    alert(`Scroll detected! X: ${lastScrollX}→${currentScrollX}, Y: ${lastScrollY}→${currentScrollY}`);
+                    updateElementPositions();
+                    lastScrollX = currentScrollX;
+                    lastScrollY = currentScrollY;
+                }
             }
+            
+            // Poll every 16ms (~60fps)
+            setInterval(checkScrollPosition, 16);
         }, (err) => {
             console.log("Broken")
         });
