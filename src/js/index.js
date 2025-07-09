@@ -6,16 +6,11 @@ const tableauExt = window.tableau.extensions;
 let lastSaved = 0;
 const throttleDelay = 200; // ms between scroll saves
 
-// Use localStorage for durability and add radix 10 to parseInt.
 let savedScroll = {
   x: parseInt(localStorage.getItem('scrollX'), 10) || 0,
   y: parseInt(localStorage.getItem('scrollY'), 10) || 0
 };
 
-/**
- * Saves the current scroll position to localStorage, throttled to prevent
- * excessive writes on every scroll event.
- */
 function saveScrollPosition() {
   const now = Date.now();
   if (now - lastSaved > throttleDelay) {
@@ -27,14 +22,9 @@ function saveScrollPosition() {
   }
 }
 
-// Attach a listener to the window's scroll event.
 window.addEventListener('scroll', saveScrollPosition);
 
-// IIFE to contain the main extension logic.
 (function () {
-  /**
-   * Initializes the extension, clears the old layout, and re-renders the new one.
-   */
   async function init() {
     $('#dashboard-container').empty();
 
@@ -47,7 +37,6 @@ window.addEventListener('scroll', saveScrollPosition);
       }
 
       requestAnimationFrame(() => {
-        // All scroll restoration is now handled here.
         window.scrollTo(savedScroll.x, savedScroll.y);
         logDebug(`[scroll restore] ${savedScroll.x}, ${savedScroll.y}`);
 
@@ -60,16 +49,11 @@ window.addEventListener('scroll', saveScrollPosition);
       if (window.location.search.includes('debug=true')) {
         injectDebugUI();
       }
-    } catch (error)
+    } catch (error) { // FIX: Added the missing opening brace '{' here.
       console.error("Extension init error:", error);
     }
   }
 
-  /**
-   * Parses margin values from a CSS-like class name (e.g., "margin-10-20").
-   * @param {string} objClasses - The string of class names.
-   * @returns {number[]} An array representing top, right, bottom, left margins.
-   */
   function getMarginFromObjClasses(objClasses) {
     const margin = [0, 0, 0, 0];
     if (!objClasses) return margin;
@@ -88,10 +72,6 @@ window.addEventListener('scroll', saveScrollPosition);
     }
   }
 
-  /**
-   * Renders a single dashboard object as a div with absolute positioning.
-   * @param {object} obj - A dashboard object from the Tableau Extensions API.
-   */
   function render(obj) {
     const [objId, objClasses = ""] = obj.name.split("|");
     const margin = getMarginFromObjClasses(objClasses);
@@ -111,9 +91,6 @@ window.addEventListener('scroll', saveScrollPosition);
     $('#dashboard-container').append($div);
   }
 
-  /**
-   * Injects a debug UI into the DOM if not already present.
-   */
   function injectDebugUI() {
     if ($('#debug-buttons').length) return;
 
@@ -151,19 +128,12 @@ window.addEventListener('scroll', saveScrollPosition);
     updateDebugTracker();
   }
 
-  /**
-   * Updates the scroll status text in the debug UI.
-   */
   function updateDebugTracker() {
     if (!$('#debug-buttons').length) return;
     const scrollStatus = `Scroll: ${window.scrollX}, ${window.scrollY}`;
     $('#scroll-status').text(scrollStatus);
   }
 
-  /**
-   * Logs a message to the debug console UI or the browser console.
-   * @param {string} message - The message to log.
-   */
   function logDebug(message) {
     if (!window.location.search.includes('debug=true')) return;
     const $log = $('#log-console');
@@ -176,7 +146,6 @@ window.addEventListener('scroll', saveScrollPosition);
     }
   }
 
-  // When the document is ready, initialize the Tableau Extension.
   $(document).ready(() => {
     tableauExt.initializeAsync().then(() => {
       init();
