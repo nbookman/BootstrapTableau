@@ -68,7 +68,7 @@ const tableauExt = window.tableau.extensions;
         let props = {
             id: `${objId}`,
             css: {
-                'position': 'absolute',
+                'position': 'fixed',
                 top: `${obj.position.y + margin[0] + window.scrollY}px`,
                 left: `${obj.position.x + margin[3] + window.scrollX}px`,
                 'width': `${parseInt(obj.size.width) - margin[1] - margin[3]}px`,
