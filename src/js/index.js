@@ -1,10 +1,7 @@
-// index.js - v7 Final
+// index.js - v9 Final
 
 let $ = window.$;
 const tableauExt = window.tableau.extensions;
-
-let lastSaved = 0;
-const throttleDelay = 200;
 
 // This object holds the reliable scroll position from localStorage.
 let savedScroll = {
@@ -14,7 +11,7 @@ let savedScroll = {
 
 function saveScrollPosition() {
   const now = Date.now();
-  if (now - lastSaved > throttleDelay) {
+  if (now > lastSaved + 200) { // Simplified throttle
     lastSaved = now;
     localStorage.setItem('scrollX', window.scrollX);
     localStorage.setItem('scrollY', window.scrollY);
@@ -30,7 +27,7 @@ window.addEventListener('beforeunload', () => {
 
 (function () {
   async function init() {
-    // Restore the browser's scroll position for the user's view.
+    // Restore the browser's scroll position immediately.
     window.scrollTo(savedScroll.x, savedScroll.y);
     $('#dashboard-container').empty();
 
@@ -38,13 +35,18 @@ window.addEventListener('beforeunload', () => {
       await tableau.extensions.setClickThroughAsync(true);
       const dashboard = tableauExt.dashboardContent.dashboard;
 
+      // FIX 1 of 3: Capture the scroll values into local constants.
+      const scrollX = savedScroll.x;
+      const scrollY = savedScroll.y;
+
       if (dashboard.objects.length === 0) {
-        console.warn('Warning: No dashboard objects were found. Nothing will be rendered.');
+        console.warn('Warning: No dashboard objects were found.');
       }
 
-      // Now that the scroll is restored, render the objects.
-      // The render() function will use the reliable savedScroll variable.
-      dashboard.objects.forEach(render);
+      // FIX 2 of 3: Pass the scroll values directly into the render function.
+      dashboard.objects.forEach(obj => {
+        render(obj, scrollX, scrollY);
+      });
 
       if (window.location.search.includes('debug=true')) {
         injectDebugUI();
@@ -70,16 +72,17 @@ window.addEventListener('beforeunload', () => {
     }
   }
 
-  function render(obj) {
+  // FIX 3 of 3: Update the render function to accept the scroll parameters.
+  function render(obj, scrollX, scrollY) {
     const [objId, objClasses = ""] = obj.name.split("|");
     const margin = getMarginFromObjClasses(objClasses);
     const $div = $('<div>', {
       id: objId,
       css: {
         position: 'absolute',
-        // FIX: Use the reliable savedScroll object instead of the volatile window.scrollY
-        top: `${obj.position.y + savedScroll.y + margin[0]}px`,
-        left: `${obj.position.x + savedScroll.x + margin[3]}px`,
+        // The calculation now uses the passed-in, reliable parameters.
+        top: `${obj.position.y + scrollY + margin[0]}px`,
+        left: `${obj.position.x + scrollX + margin[3]}px`,
         width: `${obj.size.width - margin[1] - margin[3]}px`,
         height: `${obj.size.height - margin[0] - margin[2]}px`
       }
@@ -88,6 +91,7 @@ window.addEventListener('beforeunload', () => {
     $('#dashboard-container').append($div);
   }
 
+  // The debug functions remain the same.
   function injectDebugUI() {
     if ($('#debug-buttons').length) return;
     const $debug = $(
@@ -95,7 +99,6 @@ window.addEventListener('beforeunload', () => {
         <div><button id="btn-save-scroll">Save Scroll</button>
         <button id="btn-restore-scroll">Restore Scroll</button></div>
         <div id="scroll-status" style="margin-top: 5px; font-size: 12px;"></div>
-        <div id="log-console" style="margin-top: 8px; max-height: 120px; overflow-y: auto; font-size: 12px; background: #f0f0f0; padding: 4px;"></div>
       </div>`
     );
     $('body').append($debug);
@@ -112,23 +115,10 @@ window.addEventListener('beforeunload', () => {
     });
     updateDebugTracker();
   }
-
   function updateDebugTracker() {
     if (!$('#debug-buttons').length) return;
     const scrollStatus = `Live Scroll: ${window.scrollX}, ${window.scrollY} | Saved Scroll: ${savedScroll.x}, ${savedScroll.y}`;
     $('#scroll-status').text(scrollStatus);
-  }
-
-  function logDebug(message) {
-    if (!window.location.search.includes('debug=true')) return;
-    const $log = $('#log-console');
-    if ($log.length) {
-      const timestamp = new Date().toLocaleTimeString();
-      $log.append(`<div>[${timestamp}] ${message}</div>`);
-      $log.scrollTop($log[0].scrollHeight);
-    } else {
-      console.log('[DEBUG]', message);
-    }
   }
 
   $(document).ready(() => {
