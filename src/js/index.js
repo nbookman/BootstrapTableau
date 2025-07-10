@@ -1,4 +1,4 @@
-// index.js - v4
+// index.js - v7 Final
 
 let $ = window.$;
 const tableauExt = window.tableau.extensions;
@@ -6,6 +6,7 @@ const tableauExt = window.tableau.extensions;
 let lastSaved = 0;
 const throttleDelay = 200;
 
+// This object holds the reliable scroll position from localStorage.
 let savedScroll = {
   x: parseInt(localStorage.getItem('scrollX'), 10) || 0,
   y: parseInt(localStorage.getItem('scrollY'), 10) || 0
@@ -18,14 +19,19 @@ function saveScrollPosition() {
     localStorage.setItem('scrollX', window.scrollX);
     localStorage.setItem('scrollY', window.scrollY);
     updateDebugTracker();
-    logDebug(`[scroll save] ${window.scrollX}, ${window.scrollY}`);
   }
 }
 
 window.addEventListener('scroll', saveScrollPosition);
+window.addEventListener('beforeunload', () => {
+  localStorage.setItem('scrollX', window.scrollX);
+  localStorage.setItem('scrollY', window.scrollY);
+});
 
 (function () {
   async function init() {
+    // Restore the browser's scroll position for the user's view.
+    window.scrollTo(savedScroll.x, savedScroll.y);
     $('#dashboard-container').empty();
 
     try {
@@ -36,15 +42,9 @@ window.addEventListener('scroll', saveScrollPosition);
         console.warn('Warning: No dashboard objects were found. Nothing will be rendered.');
       }
 
-      requestAnimationFrame(() => {
-        window.scrollTo(savedScroll.x, savedScroll.y);
-        logDebug(`[scroll restore - v4] ${savedScroll.x}, ${savedScroll.y}`);
-
-        requestAnimationFrame(() => {
-          logDebug(`Rendering with scrollY = ${window.scrollY}`);
-          dashboard.objects.forEach(render);
-        });
-      });
+      // Now that the scroll is restored, render the objects.
+      // The render() function will use the reliable savedScroll variable.
+      dashboard.objects.forEach(render);
 
       if (window.location.search.includes('debug=true')) {
         injectDebugUI();
@@ -77,8 +77,9 @@ window.addEventListener('scroll', saveScrollPosition);
       id: objId,
       css: {
         position: 'absolute',
-        top: `${obj.position.y + window.scrollY + margin[0]}px`,
-        left: `${obj.position.x + window.scrollX + margin[3]}px`,
+        // FIX: Use the reliable savedScroll object instead of the volatile window.scrollY
+        top: `${obj.position.y + savedScroll.y + margin[0]}px`,
+        left: `${obj.position.x + savedScroll.x + margin[3]}px`,
         width: `${obj.size.width - margin[1] - margin[3]}px`,
         height: `${obj.size.height - margin[0] - margin[2]}px`
       }
@@ -102,21 +103,19 @@ window.addEventListener('scroll', saveScrollPosition);
       localStorage.setItem('scrollX', window.scrollX);
       localStorage.setItem('scrollY', window.scrollY);
       updateDebugTracker();
-      logDebug(`[manual scroll save] ${window.scrollX}, ${window.scrollY}`);
     });
     $('#btn-restore-scroll').click(() => {
       const x = parseInt(localStorage.getItem('scrollX'), 10) || 0;
       const y = parseInt(localStorage.getItem('scrollY'), 10) || 0;
       window.scrollTo(x, y);
       updateDebugTracker();
-      logDebug(`[manual scroll restore] ${x}, ${y}`);
     });
     updateDebugTracker();
   }
 
   function updateDebugTracker() {
     if (!$('#debug-buttons').length) return;
-    const scrollStatus = `Scroll: ${window.scrollX}, ${window.scrollY}`;
+    const scrollStatus = `Live Scroll: ${window.scrollX}, ${window.scrollY} | Saved Scroll: ${savedScroll.x}, ${savedScroll.y}`;
     $('#scroll-status').text(scrollStatus);
   }
 
