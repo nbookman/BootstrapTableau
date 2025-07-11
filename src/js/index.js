@@ -79,7 +79,7 @@ window.addEventListener('beforeunload', () => {
     const $div = $('<div>', {
       id: objId,
       css: {
-        position: 'absolute',
+        position: 'relative',
         // The calculation now uses the passed-in, reliable parameters.
         top: `${obj.position.y + scrollY + margin[0]}px`,
         left: `${obj.position.x + scrollX + margin[3]}px`,
